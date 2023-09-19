@@ -19,6 +19,9 @@
   "homepage": "https://github.com/robluna98/grocery-price-app#readme",
   "dependencies": {
     "dotenv": "^16.3.1",
-    "puppeteer": "^21.2.1"
+    "puppeteer": "^21.2.1",
+    "puppeteer-cluster": "^0.23.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   }
 }
