@@ -1,6 +1,7 @@
 // Potential way to make this easier? Dynamically grab links rather than hardcoding them?
 
 const hebURL = "https://www.instacart.com/store/h-e-b/collections";
+const costcoURL = "https://www.instacart.com/store/costco/collections";
 
 const hebLinks = [
   // Produce
@@ -143,13 +144,12 @@ const hebLinks = [
   // `${hebURL}/634-cereal`,
 ];
 
-// const costcoLinks = [
-//   "https://www.instacart.com/store/costco/collections/fresh-fruits",
-//   "https://www.instacart.com/store/costco/collections/fresh-vegetables",
-//   "https://www.instacart.com/store/costco/collections/herbs",
-// ];
+const costcoLinks = [
+  `${costcoURL}/fresh-fruits`,
+  `${costcoURL}/fresh-vegetables`,
+];
 
 module.exports = {
   hebLinks,
-  // costcoLinks,
+  costcoLinks,
 };

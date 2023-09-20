@@ -1,0 +1,14 @@
+{
+  "hebItems": [
+    {
+      "item": "Banana Bunch",
+      "price": "$2.02/each"
+    }
+  ],
+  "costcoItems": [
+    {
+      "item": "Bananas",
+      "price": "$1.89"
+    }
+  ]
+}

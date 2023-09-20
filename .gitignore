@@ -1,3 +1,5 @@
 .env
 node_modules/
 tmp/
+data/cookies.json
+data/storeData.json
