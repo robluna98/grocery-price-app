@@ -1,15 +1,41 @@
 require("dotenv").config();
+const puppeteer = require("puppeteer");
 const { Cluster } = require("puppeteer-cluster");
 const fs = require("fs/promises");
-const { hebLinks } = require("./links.js");
 
 const userDataDir = process.env.USER_DATA_DIR;
 
-async function scrapeLinks() {
+// Run Once
+// Setup Cookies to allow puppeteer to access Instacart website with saved login
+// credentials used are saved in cookies.json to allow user login with userDataDir which is accessed through process.env.USER_DATA_DIR
+// TODO:: Only run if cookies.json does not exist
+async function grabCookies() {
+  const cookiesFileExists = await fs
+    .access("./data/cookies.json")
+    .then(() => true)
+    .catch(() => false);
+
+  if (!cookiesFileExists) {
+    const browser = await puppeteer.launch({
+      headless: false,
+      userDataDir: userDataDir,
+    });
+    const page = await browser.newPage();
+    await page.goto("https://www.instacart.com/", { waitUntil: "load" });
+
+    // Save Cookies
+    const cookies = await page.cookies();
+    await fs.writeFile("./data/cookies.json", JSON.stringify(cookies, null, 2));
+
+    await browser.close();
+  }
+}
+
+async function scrapeStores(links, storeName, storeData) {
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
     maxConcurrency: 4, // Adjust this based on your system's capacity
-    timeout: 60000,
+    timeout: 2147483647, // Set timeout to safest 32 bit integer as puppeteer-cluster does not support max_timeout
     monitor: true,
     puppeteerOptions: {
       headless: false,
@@ -23,9 +49,15 @@ async function scrapeLinks() {
     console.log(`Error crawling ${data}: ${err.message}`);
   });
 
-  await cluster.task(async ({ page, data: hebLink }) => {
+  await cluster.task(async ({ page, data: storeLink }) => {
+    // Set Sleep Function
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    await page.goto(hebLink);
+
+    // Load Cookies
+    const cookiesString = await fs.readFile("./data/cookies.json");
+    const cookies = JSON.parse(cookiesString);
+    await page.setCookie(...cookies);
+    await page.goto(storeLink);
     await sleep(5000);
     while (true) {
       const loadMoreButton = await page.$(
@@ -38,9 +70,13 @@ async function scrapeLinks() {
       await sleep(1500);
     }
 
-    const item_name = await page.evaluate(() => {
+    const itemName = await page.evaluate(() => {
       return Array.from(document.querySelectorAll(".e-vijstc")).map((x) => {
-        const item = x.innerText.split("\n")[0];
+        const item = x.innerText
+          .split("\n")[0]
+          // Regex to remove commas, lbs, ct, oz in item names
+          .replace(/(\d+(\.\d+)?\s(lbs|ct|oz))/g, "")
+          .replace(/, $/, "");
         return item;
       });
     });
@@ -70,24 +106,40 @@ async function scrapeLinks() {
     //   });
     // });
 
-    const combinedData = item_name.map((item, index) => ({
+    const combinedData = itemName.map((item, index) => ({
       item: item,
       price: prices[index],
-      image: img[index],
     }));
 
-    let existingData = [];
+    let existingData = {};
     try {
-      const exisingDataStr = await fs.readFile("data.json", "utf-8");
-      existingData = JSON.parse(exisingDataStr);
+      const existingDataStr = await fs.readFile(
+        `./data/storeData.json`,
+        "utf-8"
+      );
+      existingData = JSON.parse(existingDataStr);
     } catch (error) {}
 
-    const updatedData = [...existingData, ...combinedData];
-    await fs.writeFile("data.json", JSON.stringify(updatedData, null, 2));
-    console.log("Scraped data from:", hebLink);
+    if (!existingData[storeName]) {
+      existingData[storeName] = [];
+    }
+
+    const uniqueData = combinedData.filter((newItem) => {
+      return !existingData[storeName].some(
+        (existingItem) => existingItem.item === newItem.item
+      );
+    });
+
+    existingData[storeName].push(...uniqueData);
+
+    await fs.writeFile(
+      `./data/storeData.json`,
+      JSON.stringify(existingData, null, 2)
+    );
+    console.log(`Scraped data from ${storeName}:`, storeLink);
   });
 
-  for (const link of hebLinks) {
+  for (const link of links) {
     cluster.queue(link);
   }
 
@@ -95,7 +147,14 @@ async function scrapeLinks() {
   await cluster.close();
 }
 
-scrapeLinks();
+async function main() {
+  await grabCookies();
+  const { hebLinks, costcoLinks } = require("./links.js"); // Import the links from your module
+  await scrapeStores(hebLinks, "hebItems");
+  await scrapeStores(costcoLinks, "costcoItems");
+}
+
+main();
 
 // TODO::
 // Add puppeteer stealth plugin
