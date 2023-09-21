@@ -8,7 +8,6 @@ const userDataDir = process.env.USER_DATA_DIR;
 // Run Once
 // Setup Cookies to allow puppeteer to access Instacart website with saved login
 // credentials used are saved in cookies.json to allow user login with userDataDir which is accessed through process.env.USER_DATA_DIR
-// TODO:: Only run if cookies.json does not exist
 async function grabCookies() {
   const cookiesFileExists = await fs
     .access("./data/cookies.json")
@@ -31,7 +30,7 @@ async function grabCookies() {
   }
 }
 
-async function scrapeStores(links, storeName, storeData) {
+async function scrapeStores(links, storeName) {
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
     maxConcurrency: 4, // Adjust this based on your system's capacity
@@ -73,10 +72,10 @@ async function scrapeStores(links, storeName, storeData) {
     const itemName = await page.evaluate(() => {
       return Array.from(document.querySelectorAll(".e-vijstc")).map((x) => {
         const item = x.innerText
-          .split("\n")[0]
-          // Regex to remove commas, lbs, ct, oz in item names
-          .replace(/(\d+(\.\d+)?\s(lbs|ct|oz))/g, "")
-          .replace(/, $/, "");
+          .split(",")[0]
+          // Regex to remove unnecessary text
+          .replace(/\s*,?\s*-count$/i, "")
+          .trim();
         return item;
       });
     });
@@ -136,7 +135,7 @@ async function scrapeStores(links, storeName, storeData) {
       `./data/storeData.json`,
       JSON.stringify(existingData, null, 2)
     );
-    console.log(`Scraped data from ${storeName}:`, storeLink);
+    console.log("Scraped data from:", storeLink);
   });
 
   for (const link of links) {
@@ -150,11 +149,12 @@ async function scrapeStores(links, storeName, storeData) {
 async function main() {
   await grabCookies();
   const { hebLinks, costcoLinks } = require("./links.js"); // Import the links from your module
-  await scrapeStores(hebLinks, "hebItems");
-  await scrapeStores(costcoLinks, "costcoItems");
+  await scrapeStores(hebLinks, "heb");
+  await scrapeStores(costcoLinks, "costco");
 }
 
 main();
 
 // TODO::
 // Add puppeteer stealth plugin
+// Seperate data into categories

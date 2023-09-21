@@ -7,13 +7,13 @@ const hebLinks = [
   // Produce
   `${hebURL}/fresh-fruits`,
   `${hebURL}/fresh-vegetables`,
-  `${hebURL}/herbs`,
-  // Dairy & Eggs
-  `${hebURL}/milk`,
-  `${hebURL}/cheese`,
-  `${hebURL}/eggs`,
-  `${hebURL}/yogurt`,
-  `${hebURL}/butter`,
+  // `${hebURL}/herbs`,
+  // // Dairy & Eggs
+  // `${hebURL}/milk`,
+  // `${hebURL}/cheese`,
+  // `${hebURL}/eggs`,
+  // `${hebURL}/yogurt`,
+  // `${hebURL}/butter`,
   // `${hebURL}/plant-based-milks`,
   // `${hebURL}/1780-half-half`,
   // `${hebURL}/1781-cottage-cheese`,
