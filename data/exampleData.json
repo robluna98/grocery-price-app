@@ -1,14 +1,16 @@
 {
-  "hebItems": [
+  "heb": [
     {
       "item": "Banana Bunch",
-      "price": "$2.02/each"
+      "price": "$2.02/each",
+      "image": "https://www.example.jpg"
     }
   ],
-  "costcoItems": [
+  "costco": [
     {
       "item": "Bananas",
-      "price": "$1.89"
+      "price": "$1.89",
+      "image": "https://www.example.jpg"
     }
   ]
 }

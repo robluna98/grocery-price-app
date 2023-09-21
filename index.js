@@ -6,7 +6,7 @@ const fs = require("fs/promises");
 const userDataDir = process.env.USER_DATA_DIR;
 
 // Run Once
-// Setup Cookies to allow puppeteer to access Instacart website with saved login
+// Setup Cookies to allow puppeteer to access Instacart website with saved login from userDataDir
 // credentials used are saved in cookies.json to allow user login with userDataDir which is accessed through process.env.USER_DATA_DIR
 async function grabCookies() {
   const cookiesFileExists = await fs
@@ -98,16 +98,32 @@ async function scrapeStores(links, storeName) {
     });
 
     // Image Grabber
-    // const img = await page.evaluate(() => {
-    //   return Array.from(document.querySelectorAll(".e-ec1gba img")).map((x) => {
-    //     const image = x.getAttribute("srcset");
-    //     return image;
-    //   });
-    // });
+    const img = await page.evaluate(() => {
+      return (
+        Array.from(document.querySelectorAll(".e-ec1gba img"))
+          .map((x) => {
+            const srcset = x.getAttribute("srcset");
+            if (srcset) {
+              // Split the srcset by commas and spaces
+              const srcsetParts = srcset.split(/,\s+/);
+
+              // Extract the URL from the first part (before the first space)
+              const firstURL = srcsetParts[0].split(" ")[0];
+
+              return firstURL || null;
+            } else {
+              return null;
+            }
+          })
+          // Filter out null values from the img array
+          .filter((image) => image !== null)
+      );
+    });
 
     const combinedData = itemName.map((item, index) => ({
       item: item,
       price: prices[index],
+      image: img[index],
     }));
 
     let existingData = {};
@@ -147,8 +163,8 @@ async function scrapeStores(links, storeName) {
 }
 
 async function main() {
-  await grabCookies();
   const { hebLinks, costcoLinks } = require("./links.js"); // Import the links from your module
+  await grabCookies();
   await scrapeStores(hebLinks, "heb");
   await scrapeStores(costcoLinks, "costco");
 }
