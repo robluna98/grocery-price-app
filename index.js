@@ -30,6 +30,60 @@ async function grabCookies() {
   }
 }
 
+async function loadCookies(page) {
+  const cookiesString = await fs.readFile("./data/cookies.json");
+  const cookies = JSON.parse(cookiesString);
+  await page.setCookie(...cookies);
+}
+
+async function scrapeItemNames(page) {
+  return await page.evaluate(() => {
+    return Array.from(document.querySelectorAll(".e-vijstc")).map((x) => {
+      const item = x.innerText
+        .split(",")[0]
+        .replace(/\s*,?\s*-count$/i, "")
+        .trim();
+      return item;
+    });
+  });
+}
+
+async function scrapeImages(page) {
+  return await page.evaluate(() => {
+    return Array.from(document.querySelectorAll(".e-ec1gba img"))
+      .map((x) => {
+        const srcset = x.getAttribute("srcset");
+        if (srcset) {
+          const srcsetParts = srcset.split(/,\s+/);
+          const firstURL = srcsetParts[0].split(" ")[0];
+          return firstURL || null;
+        } else {
+          return null;
+        }
+      })
+      .filter((image) => image !== null);
+  });
+}
+
+async function scrapePrices(page) {
+  return await page.evaluate(() => {
+    return Array.from(document.querySelectorAll(".e-m67vuy"))
+      .map((x) => {
+        const price = x.innerText.split("\n")[0];
+        let unit = "";
+        if (x.innerText.includes("/lb")) {
+          unit = "/lb";
+        } else if (x.innerText.includes("pkg")) {
+          unit = "/pkg";
+        } else if (x.innerText.includes("each")) {
+          unit = "/each";
+        }
+        return price + unit;
+      })
+      .filter((x) => x.includes("$"));
+  });
+}
+
 async function scrapeStores(links, storeName) {
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
@@ -53,9 +107,7 @@ async function scrapeStores(links, storeName) {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
     // Load Cookies
-    const cookiesString = await fs.readFile("./data/cookies.json");
-    const cookies = JSON.parse(cookiesString);
-    await page.setCookie(...cookies);
+    await loadCookies(page);
     await page.goto(storeLink);
     await sleep(5000);
     while (true) {
@@ -69,56 +121,9 @@ async function scrapeStores(links, storeName) {
       await sleep(1500);
     }
 
-    const itemName = await page.evaluate(() => {
-      return Array.from(document.querySelectorAll(".e-vijstc")).map((x) => {
-        const item = x.innerText
-          .split(",")[0]
-          // Regex to remove unnecessary text
-          .replace(/\s*,?\s*-count$/i, "")
-          .trim();
-        return item;
-      });
-    });
-
-    const prices = await page.evaluate(() => {
-      return Array.from(document.querySelectorAll(".e-m67vuy"))
-        .map((x) => {
-          const price = x.innerText.split("\n")[0];
-          let unit = "";
-          if (x.innerText.includes("/lb")) {
-            unit = "/lb";
-          } else if (x.innerText.includes("pkg")) {
-            unit = "/pkg";
-          } else if (x.innerText.includes("each")) {
-            unit = "/each";
-          }
-          return price + unit;
-        })
-        .filter((x) => x.includes("$"));
-    });
-
-    // Image Grabber
-    const img = await page.evaluate(() => {
-      return (
-        Array.from(document.querySelectorAll(".e-ec1gba img"))
-          .map((x) => {
-            const srcset = x.getAttribute("srcset");
-            if (srcset) {
-              // Split the srcset by commas and spaces
-              const srcsetParts = srcset.split(/,\s+/);
-
-              // Extract the URL from the first part (before the first space)
-              const firstURL = srcsetParts[0].split(" ")[0];
-
-              return firstURL || null;
-            } else {
-              return null;
-            }
-          })
-          // Filter out null values from the img array
-          .filter((image) => image !== null)
-      );
-    });
+    const itemName = await scrapeItemNames(page);
+    const prices = await scrapePrices(page);
+    const img = await scrapeImages(page);
 
     const combinedData = itemName.map((item, index) => ({
       item: item,
