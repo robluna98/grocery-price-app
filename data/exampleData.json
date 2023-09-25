@@ -1,6 +1,7 @@
 {
   "heb": [
     {
+      "category": "Produce",
       "item": "Banana Bunch",
       "price": "$2.02/each",
       "image": "https://www.example.jpg"
@@ -8,6 +9,7 @@
   ],
   "costco": [
     {
+      "category": "Produce",
       "item": "Bananas",
       "price": "$1.89",
       "image": "https://www.example.jpg"

@@ -8,6 +8,12 @@ const userDataDir = process.env.USER_DATA_DIR;
 // Run Once
 // Setup Cookies to allow puppeteer to access Instacart website with saved login from userDataDir
 // credentials used are saved in cookies.json to allow user login with userDataDir which is accessed through process.env.USER_DATA_DIR
+
+/**
+ * Grabs cookies from a file or generates new cookies using Puppeteer.
+ *
+ * @return {Promise<void>} Returns a Promise that resolves once the cookies have been saved or generated.
+ */
 async function grabCookies() {
   const cookiesFileExists = await fs
     .access("./data/cookies.json")
@@ -30,12 +36,42 @@ async function grabCookies() {
   }
 }
 
+/**
+ * Load cookies from a file and set them in a page.
+ *
+ * @param {Page} page - The page object to set the cookies on.
+ * @return {Promise<void>} A promise that resolves when the cookies are set.
+ */
 async function loadCookies(page) {
   const cookiesString = await fs.readFile("./data/cookies.json");
   const cookies = JSON.parse(cookiesString);
   await page.setCookie(...cookies);
 }
 
+/**
+ * Extracts the category from a given link.
+ *
+ * @param {string} link - The link to extract the category from.
+ * @return {string} The category extracted from the link.
+ */
+function getCategoryFromLink(link) {
+  const { categoriesMapping } = require("./categories.js");
+
+  for (const category in categoriesMapping) {
+    if (categoriesMapping[category].some((pattern) => link.includes(pattern))) {
+      return category;
+    }
+  }
+  // Default to "Other" category if no match is found
+  return "Other";
+}
+
+/**
+ * Scrapes the names of items from a web page.
+ *
+ * @param {Page} page - The page to scrape the item names from.
+ * @return {Promise<Array<string>>} An array of item names.
+ */
 async function scrapeItemNames(page) {
   return await page.evaluate(() => {
     return Array.from(document.querySelectorAll(".e-vijstc")).map((x) => {
@@ -48,6 +84,12 @@ async function scrapeItemNames(page) {
   });
 }
 
+/**
+ * Scrapes images from a web page.
+ *
+ * @param {Page} page - The page to scrape images from.
+ * @return {Promise<Array<string>>} An array of URLs of the scraped images.
+ */
 async function scrapeImages(page) {
   return await page.evaluate(() => {
     return Array.from(document.querySelectorAll(".e-ec1gba img"))
@@ -65,6 +107,12 @@ async function scrapeImages(page) {
   });
 }
 
+/**
+ * Scrapes prices from a web page.
+ *
+ * @param {Page} page - The page to scrape prices from.
+ * @return {Promise<Array<string>>} An array of prices
+ */
 async function scrapePrices(page) {
   return await page.evaluate(() => {
     return Array.from(document.querySelectorAll(".e-m67vuy"))
@@ -84,6 +132,13 @@ async function scrapePrices(page) {
   });
 }
 
+/**
+ * Scrapes data from multiple stores using a list of links.
+ *
+ * @param {Array<string>} links - The list of links to the stores.
+ * @param {string} storeName - The name of the store.
+ * @return {Promise<void>} - A promise that resolves when the scraping is complete.
+ */
 async function scrapeStores(links, storeName) {
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_CONTEXT,
@@ -124,8 +179,10 @@ async function scrapeStores(links, storeName) {
     const itemName = await scrapeItemNames(page);
     const prices = await scrapePrices(page);
     const img = await scrapeImages(page);
+    const category = getCategoryFromLink(storeLink);
 
     const combinedData = itemName.map((item, index) => ({
+      category: category, // Get the category from the link
       item: item,
       price: prices[index],
       image: img[index],
@@ -167,6 +224,11 @@ async function scrapeStores(links, storeName) {
   await cluster.close();
 }
 
+/**
+ * Executes the main function.
+ *
+ * @return {Promise<void>} A promise that resolves when the function is finished executing.
+ */
 async function main() {
   const { hebLinks, costcoLinks } = require("./links.js"); // Import the links from your module
   await grabCookies();
