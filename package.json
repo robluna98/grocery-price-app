@@ -4,7 +4,7 @@
   "description": "This app will allow the usage of detecting grocery prices across different stores and find the cheapest one including up-to-date prices.",
   "main": "./backend/index.js",
   "scripts": {
-    "test": "grocery-test",
+    "test": "jest",
     "start": "node ./backend/index"
   },
   "repository": {
@@ -23,5 +23,8 @@
     "puppeteer-cluster": "^0.23.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }

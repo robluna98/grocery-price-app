@@ -5,10 +5,6 @@ const fs = require("fs/promises");
 
 const userDataDir = process.env.USER_DATA_DIR;
 
-// Run Once
-// Setup Cookies to allow puppeteer to access Instacart website with saved login from userDataDir
-// credentials used are saved in cookies.json to allow user login with userDataDir which is accessed through process.env.USER_DATA_DIR
-
 /**
  * Grabs cookies from a file or generates new cookies using Puppeteer.
  *
@@ -85,6 +81,31 @@ async function scrapeItemNames(page) {
 }
 
 /**
+ * Scrapes the units from the given page.
+ *
+ * @param {Object} page - The page object to scrape units from.
+ * @return {Promise<Array>} An array of unit text values.
+ */
+async function scrapeUnits(page) {
+  return await page.evaluate(() => {
+    const elementHeader = document.querySelectorAll(".e-fsno8i");
+    const unitTextArray = [];
+
+    elementHeader.forEach((element) => {
+      const unitValue = element.querySelectorAll(".e-wfknno");
+      if (unitValue.length > 0) {
+        unitValue.forEach((unit) => {
+          unitTextArray.push(unit.innerText);
+        });
+      } else {
+        unitTextArray.push(null); // Push null if .e-wfknno is not found
+      }
+    });
+    return unitTextArray;
+  });
+}
+
+/**
  * Scrapes images from a web page.
  *
  * @param {Page} page - The page to scrape images from.
@@ -115,7 +136,7 @@ async function scrapeImages(page) {
  */
 async function scrapePrices(page) {
   return await page.evaluate(() => {
-    return Array.from(document.querySelectorAll(".e-m67vuy"))
+    return Array.from(document.querySelectorAll(".e-1jioxed"))
       .map((x) => {
         const price = x.innerText.split("\n")[0];
         let unit = "";
@@ -180,12 +201,14 @@ async function scrapeStores(links, storeName) {
     const prices = await scrapePrices(page);
     const img = await scrapeImages(page);
     const category = getCategoryFromLink(storeLink);
+    const unit = await scrapeUnits(page);
 
     const combinedData = itemName.map((item, index) => ({
       category: category, // Get the category from the link
       item: item,
       price: prices[index],
       image: img[index],
+      unit: unit[index],
     }));
 
     let existingData = {};
@@ -240,4 +263,7 @@ main();
 
 // TODO::
 // Add puppeteer stealth plugin
-// Seperate data into categories
+// Refactor to allow usage of elementHeader in other functions?
+module.exports = {
+  grabCookies,
+};
