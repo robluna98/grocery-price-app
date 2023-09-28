@@ -1,6 +1,7 @@
 require("dotenv").config();
 const { Cluster } = require("puppeteer-cluster");
 const fs = require("fs/promises");
+const path = require("path");
 
 /**
  * Extracts the category from a given link.
@@ -167,11 +168,9 @@ async function scrapeStores(links, storeName) {
     }));
 
     let existingData = {};
+    const dataFilePath = path.join(__dirname, "../../data/storeData.json");
     try {
-      const existingDataStr = await fs.readFile(
-        `./data/storeData.json`,
-        "utf-8"
-      );
+      const existingDataStr = await fs.readFile(dataFilePath, "utf-8");
       existingData = JSON.parse(existingDataStr);
     } catch (error) {}
 
@@ -180,17 +179,23 @@ async function scrapeStores(links, storeName) {
     }
 
     const uniqueData = combinedData.filter((newItem) => {
-      return !existingData[storeName].some(
+      // Check for duplicates based on the 'item' property
+      const isDuplicate = existingData[storeName].some(
         (existingItem) => existingItem.item === newItem.item
       );
+
+      // Check if the category matches
+      const categoryMatches = existingData[storeName].every(
+        (existingItem) => existingItem.category === newItem.category
+      );
+
+      // Only add the item if it's not a duplicate and the category matches
+      return !isDuplicate && categoryMatches;
     });
 
     existingData[storeName].push(...uniqueData);
 
-    await fs.writeFile(
-      `./data/storeData.json`,
-      JSON.stringify(existingData, null, 2)
-    );
+    await fs.writeFile(dataFilePath, JSON.stringify(existingData, null, 2));
     console.log("Scraped data from:", storeLink);
   });
 
@@ -209,7 +214,6 @@ async function scrapeStores(links, storeName) {
  */
 async function main() {
   const { hebLinks, costcoLinks } = require("./links.js"); // Import the links from your module
-  await grabCookies();
   await scrapeStores(hebLinks, "heb");
   // await scrapeStores(costcoLinks, "costco");
 }
