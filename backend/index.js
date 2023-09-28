@@ -1,48 +1,6 @@
 require("dotenv").config();
-const puppeteer = require("puppeteer");
 const { Cluster } = require("puppeteer-cluster");
 const fs = require("fs/promises");
-
-const userDataDir = process.env.USER_DATA_DIR;
-
-/**
- * Grabs cookies from a file or generates new cookies using Puppeteer.
- *
- * @return {Promise<void>} Returns a Promise that resolves once the cookies have been saved or generated.
- */
-async function grabCookies() {
-  const cookiesFileExists = await fs
-    .access("./data/cookies.json")
-    .then(() => true)
-    .catch(() => false);
-
-  if (!cookiesFileExists) {
-    const browser = await puppeteer.launch({
-      headless: false,
-      userDataDir: userDataDir,
-    });
-    const page = await browser.newPage();
-    await page.goto("https://www.instacart.com/", { waitUntil: "load" });
-
-    // Save Cookies
-    const cookies = await page.cookies();
-    await fs.writeFile("./data/cookies.json", JSON.stringify(cookies, null, 2));
-
-    await browser.close();
-  }
-}
-
-/**
- * Load cookies from a file and set them in a page.
- *
- * @param {Page} page - The page object to set the cookies on.
- * @return {Promise<void>} A promise that resolves when the cookies are set.
- */
-async function loadCookies(page) {
-  const cookiesString = await fs.readFile("./data/cookies.json");
-  const cookies = JSON.parse(cookiesString);
-  await page.setCookie(...cookies);
-}
 
 /**
  * Extracts the category from a given link.
@@ -167,9 +125,8 @@ async function scrapeStores(links, storeName) {
     timeout: 2147483647, // Set timeout to safest 32 bit integer as puppeteer-cluster does not support max_timeout
     monitor: true,
     puppeteerOptions: {
-      headless: false,
+      headless: "new",
       defaultViewport: false,
-      userDataDir: userDataDir,
     },
   });
 
@@ -182,8 +139,6 @@ async function scrapeStores(links, storeName) {
     // Set Sleep Function
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-    // Load Cookies
-    await loadCookies(page);
     await page.goto(storeLink);
     await sleep(5000);
     while (true) {
@@ -194,7 +149,7 @@ async function scrapeStores(links, storeName) {
         break;
       }
       await loadMoreButton.click();
-      await sleep(1500);
+      await sleep(2500);
     }
 
     const itemName = await scrapeItemNames(page);
@@ -256,14 +211,11 @@ async function main() {
   const { hebLinks, costcoLinks } = require("./links.js"); // Import the links from your module
   await grabCookies();
   await scrapeStores(hebLinks, "heb");
-  await scrapeStores(costcoLinks, "costco");
+  // await scrapeStores(costcoLinks, "costco");
 }
 
 main();
 
 // TODO::
 // Add puppeteer stealth plugin
-// Refactor to allow usage of elementHeader in other functions?
-module.exports = {
-  grabCookies,
-};
+// Connect to local database
