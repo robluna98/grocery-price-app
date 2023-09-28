@@ -1,6 +1,12 @@
-.env
-.venv
+# Directories
+.venv/
+logs/
 node_modules/
 tmp/
-data/cookies.json
-data/storeData.json
+
+# Files
+.env
+storeData.json
+
+# Python cache
+__pycache__/
