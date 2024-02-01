@@ -1,18 +1,29 @@
-{
-  "heb": [
-    {
-      "category": "Produce",
-      "item": "Banana Bunch",
-      "price": "$2.02/each",
-      "image": "https://www.example.jpg"
-    }
-  ],
-  "costco": [
-    {
-      "category": "Produce",
-      "item": "Bananas",
-      "price": "$1.89",
-      "image": "https://www.example.jpg"
-    }
-  ]
-}
+[
+  {
+    "productName": "Cilantro",
+    "productPrice": "$0.59",
+    "productUnits": "1 ct",
+    "productImage": "https://www.instacart.com/image-server/197x197/filters:fill(FFF,true):format(jpg)/d2lnr5mha7bycj.cloudfront.net/product-image/file/large_3f4fb2a7-e494-4a14-be4f-2d427d6b0635.jpeg",
+    "productUniqueID": "Cilantro$0.59",
+    "productCategory": "Produce",
+    "productStoreName": "HEB"
+  },
+  {
+    "productName": "Natures Herb Farm Organic Oregano Italian Potted Herb",
+    "productPrice": "$5.29",
+    "productUnits": "1 qt",
+    "productImage": "https://www.instacart.com/image-server/197x197/filters:fill(FFF,true):format(jpg)/d2lnr5mha7bycj.cloudfront.net/product-image/file/large_72f9863e-f71f-4f64-9854-e5614e092a05.jpeg",
+    "productUniqueID": "Natures Herb Farm Organic Oregano Italian Potted Herb$5.29",
+    "productCategory": "Produce",
+    "productStoreName": "HEB"
+  },
+  {
+    "productName": "Herb Basil",
+    "productPrice": "$2.89",
+    "productUnits": null,
+    "productImage": "https://www.instacart.com/image-server/197x197/filters:fill(FFF,true):format(jpg)/d2lnr5mha7bycj.cloudfront.net/product-image/file/large_f2bf145e-e6eb-4b3c-b9dd-b26e4ee770ad.jpeg",
+    "productUniqueID": "Herb Basil$2.89",
+    "productCategory": "Produce",
+    "productStoreName": "HEB"
+  }
+]
