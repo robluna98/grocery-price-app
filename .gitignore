@@ -1,5 +1,5 @@
 # Directories
-.vscode
+.vscode/
 .venv/
 logs/
 node_modules/
@@ -7,7 +7,7 @@ tmp/
 
 # Files
 .env
-storeData.json
+cookies.json
 
 # Python cache
 __pycache__/
