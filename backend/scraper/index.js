@@ -50,11 +50,23 @@ async function scrapeProductInfo(page) {
     productPrice: ".e-m67vuy",
     productUnits: ".e-zjik7",
     productUnitElements: ".e-k9ly30", // Child of .e-zjik7
+    alternativeProductUnitsElements: ".e-svr0zh",
     productImage: ".e-ec1gba img",
+    productUniqueID: ".e-1dlf43s",
   };
 
   return await page.evaluate(
     ({ selectors }) => {
+      // Helper function to find the first non-null element from an array of selectors
+      const findFirstValidElement = (element, selectors) => {
+        for (const selector of selectors) {
+          const result = element.querySelector(selector);
+          if (result) {
+            return result;
+          }
+        }
+        return null;
+      };
       const extractProductInfo = (element) => {
         // Grab product name
         const productNameContainer = element.querySelector(
@@ -79,9 +91,10 @@ async function scrapeProductInfo(page) {
         const productPrice = productText.split("\n")[0] + unit || null;
 
         // Grab product units
-        const productUnitContainer = element.querySelector(
-          selectors.productUnits
-        );
+        const productUnitContainer = findFirstValidElement(element, [
+          selectors.productUnits,
+          selectors.alternativeProductUnitsElements,
+        ]);
         const unitElements = productUnitContainer
           ? Array.from(
               productUnitContainer.querySelectorAll(
@@ -89,6 +102,7 @@ async function scrapeProductInfo(page) {
               )
             ).map((unitElement) => unitElement.innerText)
           : null;
+
         const productUnits =
           unitElements && unitElements.length === 1
             ? unitElements[0]
@@ -105,10 +119,18 @@ async function scrapeProductInfo(page) {
             .split(" ")[0] || null;
 
         // Create a productUniqueID
-        const productUniqueID = productNameContainer + productPrice;
+        const productUniqueID = element
+          .querySelector(selectors.productUniqueID)
+          .getAttribute("href")
+          .split("?")[0];
+
+        // Create a timestamp for when the product was scraped
+        const timestamp =
+          new Date().toISOString() + Math.floor(Math.random() * 10000);
 
         // Return data
         return {
+          timestamp: timestamp,
           productName: productNameContainer,
           productPrice: productPrice,
           productUnits: productUnits,
@@ -236,19 +258,21 @@ async function pushPostgresDB(data) {
 
     for (const product of data) {
       const updateQuery = `
-        INSERT INTO products (product_unique_id, product_name, product_price, product_units, product_image, product_category, product_store_name)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        ON CONFLICT (product_unique_id) DO UPDATE
+        INSERT INTO products (timestamp, product_unique_id, product_name, product_price, product_units, product_image, product_category, product_store_name)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        ON CONFLICT (timestamp) DO UPDATE
         SET
-          product_name = $2,
-          product_price = $3,
-          product_units = $4,
-          product_image = $5,
-          product_category = $6,
-          product_store_name = $7
+          product_unique_id = $2,
+          product_name = $3,
+          product_price = $4,
+          product_units = $5,
+          product_image = $6,
+          product_category = $7,
+          product_store_name = $8
       `;
 
       const values = [
+        product.timestamp,
         product.productUniqueID,
         product.productName,
         product.productPrice,

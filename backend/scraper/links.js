@@ -258,16 +258,16 @@ const stores = {
   HEB: {
     url: "https://www.instacart.com/store/h-e-b/collections",
     categories: {
-      Produce: ["herbs"],
-      // Produce: ["fresh-fruits", "fresh-vegetables", "herbs"],
-      // "Dairy & Eggs": ["milk"],
+      Produce: ["fresh-fruits", "fresh-vegetables", "herbs"],
+      "Dairy & Eggs": ["milk"],
+      Beverages: ["soda-soft-drinks"],
       // Add more categories as needed
     },
   },
   Costco: {
     url: "https://www.instacart.com/store/costco/collections",
     categories: {
-      // Produce: ["fresh-fruits"],
+      Produce: ["fresh-fruits"],
       // Costco categories
     },
   },
