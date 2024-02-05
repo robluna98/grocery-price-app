@@ -5,7 +5,9 @@
   "main": "./backend/scraper/index.js",
   "scripts": {
     "test": "jest",
-    "start": "node ./backend/scraper/index"
+    "start": "node ./backend/scraper/index",
+    "lint": "eslint .",
+    "lintfix": "eslint . --fix"
   },
   "repository": {
     "type": "git",
@@ -27,6 +29,9 @@
     "user-agents": "^1.1.100"
   },
   "devDependencies": {
+    "eslint": "^8.56.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1",
     "jest": "^29.7.0"
   }
 }
