@@ -1,47 +1,3 @@
-// const hebURL = "https://www.instacart.com/store/h-e-b/collections";
-// const costcoURL = "https://www.instacart.com/store/costco/collections";
-
-// const hebLinks = [
-// Produce
-// `${hebURL}/fresh-fruits`,
-// `${hebURL}/fresh-vegetables`,
-// `${hebURL}/herbs`,
-// // Dairy & Eggs
-// `${hebURL}/milk`,
-// `${hebURL}/cheese`,
-// `${hebURL}/eggs`,
-// `${hebURL}/yogurt`,
-// `${hebURL}/butter`,
-// `${hebURL}/plant-based-milks`,
-// `${hebURL}/1780-half-half`,
-// `${hebURL}/1781-cottage-cheese`,
-// `${hebURL}/sour-cream-cream-cheese-cottage-cheese`,
-// `${hebURL}/creams`,
-// `${hebURL}/coffee-creamers`,
-// // // Beverages
-// `${hebURL}/soda-soft-drinks`,
-// `${hebURL}/sports-drinks`,
-// `${hebURL}/coffee`,
-// `${hebURL}/water-sparkling-water`,
-// `${hebURL}/energy-drinks`,
-// `${hebURL}/juice`,
-// `${hebURL}/870-milk`,
-// `${hebURL}/kombucha`,
-// `${hebURL}/1194-mixers-non-alcoholic-drinks`,
-// `${hebURL}/tea`,
-// `${hebURL}/drink-mixes`,
-// `${hebURL}/990-protein-shakes`,
-// // Meat & Seafood
-// `${hebURL}/603-chicken`,
-// `${hebURL}/beef`,
-// `${hebURL}/pork`,
-// `${hebURL}/604-turkey`,
-// `${hebURL}/fish`,
-// `${hebURL}/shellfish`,
-// `${hebURL}/hot-dogs-sausages`,
-// `${hebURL}/668-meat-alternatives`,
-// `${hebURL}/968-lamb`,
-// `${hebURL}/game-meats`,
 // // Snacks & Candy
 // `${hebURL}/chocolate-candy`,
 // `${hebURL}/chips`,
@@ -131,7 +87,7 @@
 // `${hebURL}/broths-and-stocks`,
 // `${hebURL}/canned-vegetables`,
 // // Breakfast
-// `${hebURL}/nut-butters`,
+// `${hebURL}/nut-butters/1394`,
 // `${hebURL}/breakfast-bars`,
 // `${hebURL}/oatmeal`,
 // `${hebURL}/pancake-waffle`,
@@ -256,28 +212,100 @@
 
 const stores = {
   HEB: {
-    url: "https://www.instacart.com/store/h-e-b/collections",
+    url: 'https://www.instacart.com/store/h-e-b/collections',
     categories: {
-      Produce: ["fresh-fruits", "fresh-vegetables", "herbs"],
-      "Dairy & Eggs": ["milk"],
-      Beverages: ["soda-soft-drinks"],
-      // Add more categories as needed
+      Produce: [
+        'fresh-fruits/597',
+        // 'fresh-fruits/573',
+        // 'fresh-fruits/574',
+        // 'fresh-fruits/572',
+        // 'fresh-fruits/636',
+        // 'fresh-fruits/595',
+        // 'fresh-fruits/571',
+        // 'fresh-fruits/635',
+        // 'fresh-fruits/596',
+        // 'fresh-fruits/660',
+        // 'fresh-fruits/637',
+        // 'fresh-fruits/594',
+        // 'fresh-fruits/634',
+        // 'fresh-fruits/598',
+        // 'fresh-fruits/661',
+        // 'fresh-vegetables/665',
+        // 'fresh-vegetables/672',
+        // 'fresh-vegetables/669',
+        // 'fresh-vegetables/642',
+        // 'fresh-vegetables/645',
+        // 'fresh-vegetables/667',
+        // 'fresh-vegetables/647',
+        // 'fresh-vegetables/641',
+        // 'fresh-vegetables/670',
+        // 'fresh-vegetables/668',
+        // 'fresh-vegetables/643',
+        // 'fresh-vegetables/666',
+        // 'fresh-vegetables/646',
+        // 'fresh-vegetables/640',
+        // 'fresh-vegetables/663',
+        // 'fresh-vegetables/644',
+        // 'fresh-vegetables/662',
+      ],
+      // Produce: ['fresh-fruits', 'fresh-vegetables', 'herbs'],
+      // 'Dairy & Eggs': [
+      //   'milk/706',
+      //   'milk',
+      //   'cheese',
+      //   'eggs',
+      //   'yogurt',
+      //   'butter',
+      //   'plant-based-milks',
+      //   'sour-cream-cream-cheese-cottage-cheese',
+      //   'creams',
+      //   'coffee-creamers',
+      //   '1780-half-half',
+      //   '1781-cottage-cheese',
+      // ],
+      // Beverages: [
+      //   'soda-soft-drinks',
+      //   'sports-drinks',
+      //   'coffee',
+      //   'water-sparkling-water',
+      //   'energy-drinks',
+      //   'juice',
+      //   'kombucha',
+      //   'tea',
+      //   'drink-mixes',
+      //   '870-milk',
+      //   '990-protein-shakes',
+      //   '1194-mixers-non-alcoholic-drinks',
+      // ],
+      // 'Meat & Seafood': [
+      //   'beef',
+      //   'pork',
+      //   'fish',
+      //   'shellfish',
+      //   'hot-dogs-sausages',
+      //   'game-meats',
+      //   '603-chicken',
+      //   '604-turkey',
+      //   '668-meat-alternatives',
+      //   '968-lamb',
+      // ],
     },
   },
   Costco: {
-    url: "https://www.instacart.com/store/costco/collections",
+    url: 'https://www.instacart.com/store/costco/collections',
     categories: {
-      Produce: ["fresh-fruits"],
+      Produce: ['fresh-fruits'],
       // Costco categories
     },
   },
   // Add more stores as needed
 };
 
-const allLinks = Object.values(stores).flatMap(({ url, categories }) =>
-  Object.values(categories).flatMap((subpaths) =>
-    subpaths.map((subpath) => `${url}/${subpath}`)
-  )
+// prettier-ignore
+const allLinks = Object.values(stores).flatMap(
+  ({ url, categories }) => Object.values(categories).flatMap(
+    (subpaths) => subpaths.map((subpath) => `${url}/${subpath}`),
+  ),
 );
 
 module.exports = {

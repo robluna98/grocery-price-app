@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "start": "node ./backend/scraper/index",
-    "lint": "eslint .",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lintfix": "eslint . --fix"
   },
   "repository": {
