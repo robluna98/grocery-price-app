@@ -5,7 +5,7 @@ const fs = require('fs/promises');
 const path = require('path');
 const { Client } = require('pg');
 const { random } = require('user-agents');
-const { stores } = require('./links');
+const { allLinks, stores } = require('./links');
 
 function logErrorToFile(message) {
   const logFilePath = path.join(__dirname, 'logs', 'scraping_error.log');
@@ -23,7 +23,7 @@ function logErrorToFile(message) {
 function isDuplicate(array, product) {
   return array.some(
     (existingProduct) => existingProduct.productName === product.productName
-    && existingProduct.productPrice === product.productPrice,
+      && existingProduct.productPrice === product.productPrice,
     // prettier-ignore
   );
 }
@@ -41,6 +41,7 @@ const waitTillHTMLRendered = async (page, timeout = 30000) => {
   const minStableSizeIterations = 3;
 
   while (checkCounts <= maxChecks) {
+    // eslint-disable-next-line no-await-in-loop
     const html = await page.content();
     const currentHTMLSize = html.length;
 
@@ -56,6 +57,7 @@ const waitTillHTMLRendered = async (page, timeout = 30000) => {
     }
 
     lastHTMLSize = currentHTMLSize;
+    // eslint-disable-next-line no-await-in-loop
     await page.waitForTimeout(checkDurationMsecs);
 
     checkCounts += 1;
@@ -63,30 +65,42 @@ const waitTillHTMLRendered = async (page, timeout = 30000) => {
 };
 
 function getStoreNameFromLink(link) {
-  for (const [storeName, { url }] of Object.entries(stores)) {
-    if (link.startsWith(url)) {
-      return storeName;
-    }
-  }
-  return 'Other';
+  const storeNames = Object.keys(stores);
+
+  // prettier-ignore
+  const foundStore = storeNames.find(
+    (storeName) => link.startsWith(stores[storeName].url),
+  );
+  return foundStore || 'Other';
 }
 
+// prettier-ignore
 function getCategoryFromLink(link) {
-  const { stores } = require('./links.js');
-  for (const [, { url, categories }] of Object.entries(stores)) {
-    if (link.startsWith(url)) {
-      for (const [categoryName, subpaths] of Object.entries(categories)) {
-        if (subpaths.some((subpath) => link.includes(`${url}/${subpath}`))) {
-          return categoryName;
-        }
-      }
+  // Find the store that matches the provided link
+  const matchedStore = Object.values(stores).find(
+    (store) => link.startsWith(store.url),
+  );
+
+  if (matchedStore) {
+    // If a matching store is found, check for categories
+    const category = Object.entries(matchedStore.categories).find(
+      (subpaths) => subpaths.some(
+        (subpath) => link.includes(`${matchedStore.url}/${subpath}`),
+      ),
+    );
+
+    if (category) {
+      // If a matching category is found, return it
+      return category[0];
     }
   }
+  // If no matching store or category is found, return 'Other'
   return 'Other';
 }
 
+// prettier-ignore
 async function scrapeProductInfo(page) {
-  const selectors = {
+  const pageSelectors = {
     productContainer: '.e-fsno8i',
     productName: '.e-n9fc4b',
     productPrice: '.e-m67vuy',
@@ -97,18 +111,13 @@ async function scrapeProductInfo(page) {
     productUniqueID: '.e-1dlf43s',
   };
 
-  return await page.evaluate(
+  return page.evaluate(
     ({ selectors }) => {
       // Helper function to find the first non-null element from an array of selectors
-      const findFirstValidElement = (element, selectors) => {
-        for (const selector of selectors) {
-          const result = element.querySelector(selector);
-          if (result) {
-            return result;
-          }
-        }
-        return null;
-      };
+      const findFirstValidElement = (element, outerSelectors) => outerSelectors
+        .map((selector) => element.querySelector(selector))
+        .find((result) => result !== null);
+
       const extractProductInfo = (element) => {
         // Grab product name
         const productNameContainer = element.querySelector(
@@ -124,11 +133,8 @@ async function scrapeProductInfo(page) {
         let unit = '';
 
         if (unitMatch) {
-          if (unitMatch[0].startsWith('/')) {
-            unit = unitMatch[0];
-          } else {
-            unit = ' ' + unitMatch[0];
-          }
+          const [matchedUnit] = unitMatch;
+          unit = matchedUnit.startsWith('/') ? matchedUnit : ` ${matchedUnit}`;
         }
         const productPrice = productText.split('\n')[0] + unit || null;
 
@@ -139,44 +145,36 @@ async function scrapeProductInfo(page) {
         ]);
         const unitElements = productUnitContainer
           ? Array.from(
-              productUnitContainer.querySelectorAll(
-                selectors.productUnitElements,
-              ),
-            ).map((unitElement) => unitElement.innerText)
+            productUnitContainer.querySelectorAll(
+              selectors.productUnitElements,
+            ),
+          ).map((unitElement) => unitElement.innerText)
           : null;
 
-        const productUnits =
-          unitElements && unitElements.length === 1
-            ? unitElements[0]
-            : unitElements;
+        const productUnits = unitElements && unitElements.length === 1
+          ? unitElements[0]
+          : unitElements;
 
         // Grab product image
         const productImageContainer = element.querySelector(
           selectors.productImage,
         );
-        const productImage =
-          productImageContainer
-            .getAttribute('srcset')
-            .split(/,\s+/)[0]
-            .split(' ')[0] || null;
-
-        // Create a productUniqueID
-        // const productUniqueID = element
-        //   .querySelector(selectors.productUniqueID)
-        //   .getAttribute('href')
-        //   .split('?')[0];
+        const productImage = productImageContainer
+          .getAttribute('srcset')
+          .split(/,\s+/)[0]
+          .split(' ')[0] || null;
 
         // Create a timestamp for when the product was scraped
-        const timestamp =
-          new Date().toISOString() + Math.floor(Math.random() * 10000);
+        const timestamp = new Date().toISOString()
+        + Math.floor(Math.random() * 10000);
 
         // Return data
         return {
-          timestamp: timestamp,
+          timestamp,
           productName: productNameContainer,
-          productPrice: productPrice,
-          productUnits: productUnits,
-          productImage: productImage,
+          productPrice,
+          productUnits,
+          productImage,
           // productUniqueID: productUniqueID,
         };
       };
@@ -185,12 +183,19 @@ async function scrapeProductInfo(page) {
         document.querySelectorAll(selectors.productContainer),
       ).map(extractProductInfo);
     },
-    { selectors },
+    { selectors: pageSelectors },
   );
 }
 
+// prettier-ignore
 async function grabCookies() {
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const sleep = (ms) => new Promise((resolve) => {
+    setTimeout(() => {
+      // No need to pass a value to resolve
+      resolve();
+    }, ms);
+  });
+
   const cookiesFileExists = await fs
     .access('./backend/data/cookies.json')
     .then(() => true)
@@ -219,10 +224,10 @@ async function grabCookies() {
 async function autoScroll(page) {
   await page.evaluate(async () => {
     await new Promise((resolve) => {
-      var totalHeight = 0;
-      var distance = 100;
-      var timer = setInterval(() => {
-        var scrollHeight = document.body.scrollHeight;
+      let totalHeight = 0;
+      const distance = 100;
+      const timer = setInterval(() => {
+        const { scrollHeight } = document.body;
         window.scrollBy(0, distance);
         totalHeight += distance;
 
@@ -255,14 +260,9 @@ async function scrapeStores(links) {
     errorOccurred = true;
   });
 
-  let allData = [];
+  const allData = [];
 
   await cluster.task(async ({ page, data: storeLink }) => {
-    // Set Sleep Function
-    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    const buttonSelector =
-      '#store-wrapper > div > div > div.e-1bfgc1k > div.e-14cjhfa > button';
-
     // Set Cookies
     const cookiesString = await fs.readFile('./backend/data/cookies.json');
     const cookies = JSON.parse(cookiesString);
@@ -273,34 +273,24 @@ async function scrapeStores(links) {
     await page.setUserAgent(randomUserAgent.toString());
 
     await page.goto(storeLink);
-    // await page.waitForSelector('.e-14cjhfa');
-    // await page.setViewport({ width: 1200, height: 800 });
     await waitTillHTMLRendered(page, 30000);
     await autoScroll(page);
     const productCategory = getCategoryFromLink(storeLink);
     const productStoreName = getStoreNameFromLink(storeLink);
 
-    // await page.waitForSelector(buttonSelector, {
-    //   visible: true,
-    // });
-    // while (true) {
-    //   const loadMoreButton = await page.$(buttonSelector);
-    //   if (!loadMoreButton) {
-    //     break;
-    //   }
-    //   await loadMoreButton.click();
-    //   await sleep(500);
-    // }
-
     const data = await scrapeProductInfo(page);
     // Append productCategory data and handle duplicate names
     data.forEach((product) => {
-      product.productCategory = productCategory;
-      product.productStoreName = productStoreName;
+      // Create a new object or clone the existing one
+      const updatedProduct = { ...product };
+
+      // Assign new values to properties
+      updatedProduct.productCategory = productCategory;
+      updatedProduct.productStoreName = productStoreName;
 
       // Check for duplicates before adding
-      if (!isDuplicate(allData, product)) {
-        allData.push(product);
+      if (!isDuplicate(allData, updatedProduct)) {
+        allData.push(updatedProduct);
       }
     });
   });
@@ -331,9 +321,18 @@ async function pushPostgresDB(data) {
   try {
     await pgClient.connect();
 
-    for (const product of data) {
-      const updateQuery = `
-        INSERT INTO products (timestamp, product_name, product_price, product_units, product_image, product_category, product_store_name)
+    await Promise.all(
+      data.map(async (product) => {
+        const updateQuery = `
+        INSERT INTO products (
+          timestamp,
+          product_name,
+          product_price,
+          product_units,
+          product_image,
+          product_category,
+          product_store_name
+        )
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         ON CONFLICT (timestamp) DO UPDATE
         SET
@@ -345,18 +344,19 @@ async function pushPostgresDB(data) {
           product_store_name = $7
       `;
 
-      const values = [
-        product.timestamp,
-        product.productName,
-        product.productPrice,
-        product.productUnits,
-        product.productImage,
-        product.productCategory,
-        product.productStoreName,
-      ];
+        const values = [
+          product.timestamp,
+          product.productName,
+          product.productPrice,
+          product.productUnits,
+          product.productImage,
+          product.productCategory,
+          product.productStoreName,
+        ];
 
-      await pgClient.query(updateQuery, values);
-    }
+        await pgClient.query(updateQuery, values);
+      }),
+    );
   } catch (err) {
     console.error('Error connecting to PostgreSQL:', err);
   } finally {
@@ -368,14 +368,14 @@ async function pushPostgresDB(data) {
 async function main() {
   try {
     await grabCookies();
-    const { allLinks } = require('./links.js'); // Import the links from your module
     const allData = await scrapeStores(allLinks);
     await pushPostgresDB(allData);
   } catch (err) {
     const errorMessage = `Scraping failed, not pushing to PostgreSQL: ${err}`;
     logErrorToFile(errorMessage);
     console.error(
-      'An error has occured during scraping, please check the logs for more details. The log file is located at ./logs/scraping_error.log',
+      'An error has occured during scraping, please check the logs',
+      'The log file is located at ./logs/scraping_error.log',
     );
   }
 }

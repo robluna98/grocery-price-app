@@ -1,5 +1,6 @@
 {
   "env": {
+    "browser": true,
     "commonjs": true,
     "es2021": true
   },
@@ -8,7 +9,9 @@
     "ecmaVersion": "latest"
   },
   "rules": {
+    "arrow-body-style": ["error", "as-needed"],
     "linebreak-style": ["error", "windows"],
-    "no-console": ["off"]
+    "no-console": ["off"],
+    "max-len": ["error", { "ignoreComments": true }]
   }
 }
