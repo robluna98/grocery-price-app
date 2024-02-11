@@ -10,7 +10,7 @@
   },
   "rules": {
     "arrow-body-style": ["error", "as-needed"],
-    "linebreak-style": ["warning", "windows"],
+    "linebreak-style": ["warn", "windows"],
     "no-console": ["off"],
     "max-len": ["error", { "ignoreComments": true }]
   }
