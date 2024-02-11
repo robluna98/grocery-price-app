@@ -1,14 +1,13 @@
-name: Push to Main after linting pass
+name: Push to Main Branch
 on:
   workflow_run:
     workflows: ['Lint Codebase']
-    types:
-      - completed
+    types: [completed]
 
 jobs:
   push_to_main:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
