@@ -1,29 +1,22 @@
-[
-  {
-    "productName": "Cilantro",
-    "productPrice": "$0.59",
-    "productUnits": "1 ct",
-    "productImage": "https://www.instacart.com/image-server/197x197/filters:fill(FFF,true):format(jpg)/d2lnr5mha7bycj.cloudfront.net/product-image/file/large_3f4fb2a7-e494-4a14-be4f-2d427d6b0635.jpeg",
-    "productUniqueID": "Cilantro$0.59",
-    "productCategory": "Produce",
-    "productStoreName": "HEB"
-  },
-  {
-    "productName": "Natures Herb Farm Organic Oregano Italian Potted Herb",
-    "productPrice": "$5.29",
-    "productUnits": "1 qt",
-    "productImage": "https://www.instacart.com/image-server/197x197/filters:fill(FFF,true):format(jpg)/d2lnr5mha7bycj.cloudfront.net/product-image/file/large_72f9863e-f71f-4f64-9854-e5614e092a05.jpeg",
-    "productUniqueID": "Natures Herb Farm Organic Oregano Italian Potted Herb$5.29",
-    "productCategory": "Produce",
-    "productStoreName": "HEB"
-  },
-  {
-    "productName": "Herb Basil",
-    "productPrice": "$2.89",
-    "productUnits": null,
-    "productImage": "https://www.instacart.com/image-server/197x197/filters:fill(FFF,true):format(jpg)/d2lnr5mha7bycj.cloudfront.net/product-image/file/large_f2bf145e-e6eb-4b3c-b9dd-b26e4ee770ad.jpeg",
-    "productUniqueID": "Herb Basil$2.89",
-    "productCategory": "Produce",
-    "productStoreName": "HEB"
-  }
-]
+{
+  "items": [
+    {
+      "timestamp": "2024-02-13T07:27:31.660Z3464",
+      "product_name": "Banana Bunch",
+      "product_price": "$1.84 each",
+      "product_units": "$0.69 / lb",
+      "product_image": "https://www.instacart.com/image-server/257x257/filters:fill(FFF,true):format(jpg)/d2lnr5mha7bycj.cloudfront.net/product-image/file/large_b84b58f5-b816-4b47-a1a5-3403e9f18d81.jpeg",
+      "product_category": "Produce",
+      "product_store_name": "HEB"
+    },
+    {
+      "timestamp": "2024-02-13T07:27:31.660Z2610",
+      "product_name": "Imperfekt Bites Go Bananas",
+      "product_price": "$6.89",
+      "product_units": "4 oz",
+      "product_image": "https://www.instacart.com/image-server/257x257/filters:fill(FFF,true):format(jpg)/d2lnr5mha7bycj.cloudfront.net/product-image/file/large_7e24702c-ce9d-40d5-9a67-6e791bc6dc01.jpeg",
+      "product_category": "Produce",
+      "product_store_name": "HEB"
+    }
+  ]
+}
