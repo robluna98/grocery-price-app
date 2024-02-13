@@ -76,25 +76,23 @@ function getStoreNameFromLink(link) {
 
 // prettier-ignore
 function getCategoryFromLink(link) {
-  // Find the store that matches the provided link
   const matchedStore = Object.values(stores).find(
     (store) => link.startsWith(store.url),
   );
 
   if (matchedStore) {
-    // If a matching store is found, check for categories
-    const category = Object.entries(matchedStore.categories).find(
-      (subpaths) => subpaths.some(
+    const categoryKey = Object.keys(matchedStore.categories).find((key) => {
+      const category = matchedStore.categories[key];
+      return category.some(
         (subpath) => link.includes(`${matchedStore.url}/${subpath}`),
-      ),
-    );
+      );
+    });
 
-    if (category) {
-      // If a matching category is found, return it
-      return category[0];
+    if (categoryKey) {
+      return categoryKey;
     }
   }
-  // If no matching store or category is found, return 'Other'
+
   return 'Other';
 }
 
