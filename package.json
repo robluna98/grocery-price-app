@@ -1,6 +1,6 @@
 {
   "name": "grocery-prices-app",
-  "version": "1.0.6",
+  "version": "0.0.6",
   "description": "This app will allow the usage of detecting grocery prices across different stores and find the cheapest one including up-to-date prices.",
   "main": "./backend/scraper/index.js",
   "scripts": {

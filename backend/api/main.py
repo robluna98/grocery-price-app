@@ -9,7 +9,7 @@ from .database import SessionLocal, engine
 from typing import Optional
 
 models.Base.metadata.create_all(bind=engine)
-app = FastAPI()
+app = FastAPI(title="Grocery Prices API", version="0.0.6")
 add_pagination(app)
 
 
@@ -21,7 +21,7 @@ def get_db():
         db.close()
 
 
-@app.get("/products", response_model=Page[schemas.Products])
+@app.get("/products", response_model=Page[schemas.Products], tags=["Grocery Products"])
 def read_products(page: Optional[int] = Query(1, alias="page"), db: Session = Depends(get_db)):
     products = crud.get_all_products(db)
     if not products:
@@ -43,7 +43,7 @@ def read_products(page: Optional[int] = Query(1, alias="page"), db: Session = De
     return paginate(products, params)
 
 
-@app.get("/products/category/{category}", response_model=Page[schemas.Products])
+@app.get("/products/category/{category}", response_model=Page[schemas.Products], tags=["Grocery Products"])
 def read_products_by_category(category: str, db: Session = Depends(get_db)):
     products = crud.get_products_by_category(db, category)
     if not products:
@@ -54,7 +54,7 @@ def read_products_by_category(category: str, db: Session = Depends(get_db)):
 
 
 @cached(ttl=3600)
-@app.get("/products/search/{query}", response_model=Page[schemas.Products])
+@app.get("/products/search/{query}", response_model=Page[schemas.Products], tags=["Grocery Products"])
 def search_products(query: str, db: Session = Depends(get_db)):
     products = crud.search_products(db, query)
     if not products:
@@ -63,7 +63,7 @@ def search_products(query: str, db: Session = Depends(get_db)):
     return paginate(products)
 
 
-@app.get("/products/store/{store_name}", response_model=Page[schemas.Products])
+@app.get("/products/store/{store_name}", response_model=Page[schemas.Products], tags=["Grocery Products"])
 def read_products_by_store(store_name: str, db: Session = Depends(get_db)):
     products = crud.get_products_by_store(db, store_name)
     if not products:
